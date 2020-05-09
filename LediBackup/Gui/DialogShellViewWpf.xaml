@@ -1,0 +1,54 @@
+﻿<Window
+    x:Class="LediBackup.Gui.DialogShellViewWpf"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="EhViewLoaded"
+    ResizeMode="CanResizeWithGrip"
+    SizeToContent="WidthAndHeight"
+    Unloaded="EhViewUnloaded"
+    WindowStyle="SingleBorderWindow"
+    mc:Ignorable="d">
+    <Grid Name="_grid" Margin="4,4,4,4">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="6" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid
+            Name="_buttonGrid"
+            Grid.Row="2"
+            Margin="0,4,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0" />
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="0" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Name="_btOk"
+                Grid.Column="1"
+                Click="EhButtonOKPressed"
+                IsDefault="True">
+                Ok
+            </Button>
+            <Button
+                Name="_btCancel"
+                Grid.Column="3"
+                Click="EhButtonCancelPressed"
+                IsCancel="True">
+                Cancel
+            </Button>
+            <Button
+                Name="_btApply"
+                Grid.Column="5"
+                Click="EhButtonApplyPressed">
+                Apply
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

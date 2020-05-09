@@ -1,0 +1,171 @@
+﻿<UserControl
+    x:Class="LediBackup.Gui.BackupDocumentControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:LediBackup.Gui"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <local:VisibilityHiddenForFalseConverter x:Key="VisibilityHiddenForFalseConverter" />
+        <local:VisibilityHiddenForTrueConverter x:Key="VisibilityHiddenForTrueConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Command="{Binding CmdFileOpen}" Header="Open.." />
+                <MenuItem Command="{Binding CmdFileSave}" Header="Save" />
+                <MenuItem Command="{Binding CmdFileSaveAs}" Header="Save as.." />
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Command="{Binding CmdReorganizeOldBackup}" Header="Reorganize old backup.." />
+            </MenuItem>
+        </Menu>
+
+        <Label Grid.Row="2" Content="Base directory to store the backups:" />
+        <TextBox Grid.Row="4" Text="{Binding BackupBaseDirectory, Mode=TwoWay}" />
+        <Button
+            Grid.Row="4"
+            Grid.Column="2"
+            Margin="4"
+            Command="{Binding CmdChooseBackupBaseDirectory}"
+            Content="..." />
+        <Label Grid.Row="8" Content="Directories to backup:" />
+        <ListView
+            Grid.Row="10"
+            ItemsSource="{Binding BackupDirectories}"
+            ScrollViewer.VerticalScrollBarVisibility="Visible"
+            SelectedItem="{Binding SelectedDirectory}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="IsEnabled">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="200" Header="Destination folder">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock MinWidth="50" Text="{Binding DestinationDirectory}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="600" Header="Source directory">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock MinWidth="50" Text="{Binding SourceDirectory}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel
+            Grid.Row="10"
+            Grid.Column="2"
+            Orientation="Vertical">
+            <Button
+                Margin="4"
+                Command="{Binding CmdNewDirectoryEntry}"
+                Content="New.." />
+            <Button
+                Margin="4"
+                Command="{Binding CmdEditDirectoryEntry}"
+                Content="Edit.." />
+            <Button
+                Margin="4"
+                Command="{Binding CmdMoveDirectoryEntryUp}"
+                Content="^" />
+            <Button
+                Margin="4"
+                Command="{Binding CmdMoveDirectoryEntryDown}"
+                Content="v" />
+            <Button
+                Margin="4"
+                Command="{Binding CmdDeleteDirectoryEntry}"
+                Content="X" />
+        </StackPanel>
+
+        <GroupBox Grid.Row="12" Header="Backup mode:">
+            <StackPanel Orientation="Vertical">
+                <RadioButton
+                    Content="Fast"
+                    IsChecked="{Binding BackupModeIsFast}"
+                    ToolTip="In fast mode, the file content is hashed only if neccessary. Files that have changed their content, without changing the length or write time, could not be detected." />
+                <RadioButton
+                    Content="Secure"
+                    IsChecked="{Binding BackupModeIsSecure}"
+                    ToolTip="In secure mode, the file content is always hashed. This ensures that file content changes will always be detected. Additionally, it ensures that your files are still readable (no errors on your hard disk)." />
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel Grid.Row="14" Orientation="Horizontal">
+            <Label Content="ReaderItems:" />
+            <Label MinWidth="50" Content="{Binding NumberOfItemsInReader}" />
+            <Label Content="HasherItems:" />
+            <Label MinWidth="50" Content="{Binding NumberOfItemsInHasher}" />
+            <Label Content="WriterItems:" />
+            <Label MinWidth="50" Content="{Binding NumberOfItemsInWriter}" />
+            <Label Content="Processed Items:" />
+            <Label MinWidth="50" Content="{Binding NumberOfProcessedFiles}" />
+            <Label Content="Failed Items:" />
+            <Label MinWidth="50" Content="{Binding NumberOfFailedFiles}" />
+        </StackPanel>
+        <Label Grid.Row="16" Content="Currently processed file:" />
+        <Label Grid.Row="18" Content="{Binding NameOfProcessedFile}" />
+        <Label Grid.Row="20" Content="Errors:" />
+        <ListView
+            Grid.Row="22"
+            ItemsSource="{Binding ErrorMessages}"
+            ScrollViewer.VerticalScrollBarVisibility="Visible" />
+        <Button
+            Grid.Row="24"
+            Background="LightPink"
+            Command="{Binding CmdCancelBackup}"
+            Content="Cancel Backup"
+            Visibility="{Binding IsBackupActive, Converter={StaticResource VisibilityHiddenForFalseConverter}}" />
+        <Button
+            Grid.Row="24"
+            Background="LightGreen"
+            Command="{Binding CmdStartBackup}"
+            Content="Start Backup"
+            Visibility="{Binding IsBackupActive, Converter={StaticResource VisibilityHiddenForTrueConverter}}" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,133 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:LediBackup.Gui">
+
+    <!--  *********************** Styles for NumericUpDownBase **************************************  -->
+    <Style xmlns:axogc="clr-namespace:LediBackup.Gui" TargetType="{x:Type axogc:NumericUpDownBase}">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type axogc:NumericUpDownBase}">
+                    <Border
+                        Grid.RowSpan="2"
+                        Grid.ColumnSpan="2"
+                        Margin="0"
+                        BorderBrush="Gray"
+                        BorderThickness="1">
+                        <Grid Margin="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" MinWidth="16" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox
+                                x:Name="_textBox"
+                                Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Grid.Column="0"
+                                TextAlignment="Right">
+                                <!--  Note that the Binding for TextBox.Text is located in the OnApplyTemplate function (it was neccessary because the converter and the validation rule needs a reference to the control)  -->
+                                <TextBox.Style>
+                                    <Style TargetType="{x:Type TextBox}">
+                                        <Style.Triggers>
+                                            <Trigger Property="Validation.HasError" Value="true">
+                                                <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+
+                            <RepeatButton
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Command="{x:Static axogc:NumericUpDownBase.IncreaseCommand}">
+                                <Path
+                                    Margin="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Fill="Black">
+                                    <Path.Data>
+                                        <Geometry>M 0 4 L 3.5 0 L 7 4 Z</Geometry>
+                                    </Path.Data>
+                                </Path>
+                            </RepeatButton>
+
+                            <RepeatButton
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Command="{x:Static axogc:NumericUpDownBase.DecreaseCommand}">
+                                <Path
+                                    Margin="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Fill="Black">
+                                    <Path.Data>
+                                        <Geometry>M 0 0 L 3.5 4 L 7 0 Z</Geometry>
+                                    </Path.Data>
+                                </Path>
+                            </RepeatButton>
+
+                            <RepeatButton
+                                Grid.Row="0"
+                                Grid.Column="2"
+                                Command="{x:Static axogc:NumericUpDownBase.GotoMaximumCommand}">
+                                <RepeatButton.Visibility>
+                                    <Binding Path="IsGotoMinimumAndMaximumVisible" RelativeSource="{RelativeSource TemplatedParent}">
+                                        <Binding.Converter>
+                                            <BooleanToVisibilityConverter />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </RepeatButton.Visibility>
+                                <Path
+                                    Margin="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Fill="Black">
+                                    <Path.Data>
+                                        <Geometry>M 0 5 L 4 1 L 0 1 L 0 0 L 8 0 L 8 1 L 4 1 L 8 5 Z</Geometry>
+                                    </Path.Data>
+                                </Path>
+                            </RepeatButton>
+
+                            <RepeatButton
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Command="{x:Static axogc:NumericUpDownBase.GotoMinimumCommand}">
+                                <RepeatButton.Visibility>
+                                    <Binding Path="IsGotoMinimumAndMaximumVisible" RelativeSource="{RelativeSource TemplatedParent}">
+                                        <Binding.Converter>
+                                            <BooleanToVisibilityConverter />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </RepeatButton.Visibility>
+                                <Path
+                                    Margin="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Fill="Black">
+                                    <Path.Data>
+                                        <Geometry>M 0 0 L 4 4 L 0 4 L 0 5 L 8 5 L 8 4 L 4 4 L 8 0 Z</Geometry>
+                                    </Path.Data>
+                                </Path>
+                            </RepeatButton>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+
+
+
+
+</ResourceDictionary>
