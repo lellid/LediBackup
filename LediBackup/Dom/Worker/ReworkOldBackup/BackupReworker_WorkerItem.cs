@@ -98,7 +98,7 @@ namespace LediBackup.Dom.Worker.ReworkOldBackup
           if (IsReadingCompleted)
           {
             _sha256.TransformFinalBlock(_buffer, 0, _bytesInBuffer);
-            (_centralStorageFolder, _centralStorageFileName) = _parent.GetNameOfCentralStorageFile(_sha256.Hash);
+            (_centralStorageFolder, _centralStorageFileName) = FileUtilities.GetNameOfCentralStorageFile(_parent._backupCentralStorageFolder, _sha256.Hash);
             _parent._sha256Pool.ReturnToPool(ref _sha256);
 
             // we don't need the stream and we don't need the buffer anymore
@@ -125,30 +125,45 @@ namespace LediBackup.Dom.Worker.ReworkOldBackup
           if (File.Exists(_centralStorageFileName)) // central storage file already exists
           {
             // make a hardlink from the central storage file to the source file
-            File.Delete(_sourceFile.FullName);
+            // but first we have to delete the source file
+            if (_sourceFile.IsReadOnly)
+            {
+              _sourceFile.IsReadOnly = false;
+            }
+            _sourceFile.Delete();
             var hlr = FileUtilities.CreateHardLink(_centralStorageFileName, _sourceFile.FullName);
-            if (hlr == FileUtilities.ERROR_TOO_MANY_LINKS)
+            if (hlr != 0)
             {
-              // if the hardlink limit is exceeded, we need to make a full copy of the source file
-              // effectively replacing the central storage file
-              var tempFileName = FileUtilities.FileRenameToTemporaryFileInSameFolder(_centralStorageFileName);
-              File.Copy(tempFileName, _centralStorageFileName);
-              File.Delete(tempFileName);
+              if (hlr == FileUtilities.ERROR_TOO_MANY_LINKS)
+              {
+                // if the hardlink limit is exceeded, we need to make a full copy of the source file
+                // effectively replacing the central storage file
+                var tempFileName = FileUtilities.FileRenameToTemporaryFileInSameFolder(_centralStorageFileName);
+                File.Copy(tempFileName, _centralStorageFileName);
+                File.Delete(tempFileName);
+                // now, try to create the hardlink again, now there should be no hardlink limit error any more 
+                var hlr2 = FileUtilities.CreateHardLink(_centralStorageFileName, _sourceFile.FullName);
+                if (hlr2 != 0)
+                {
+                  throw new System.IO.IOException($"Error create hard link from {_sourceFile.FullName} to {_centralStorageFileName}, ErrorCode: {hlr2}");
+                }
+              }
+              else
+              {
+                throw new System.IO.IOException($"Error create hard link from {_sourceFile.FullName} to {_centralStorageFileName}, ErrorCode: {hlr}");
+              }
             }
-            else
-            {
-              throw new System.IO.IOException($"Error create hard link from {_sourceFile.FullName} to {_centralStorageFileName}");
-            }
-            throw new System.IO.IOException($"Create hard link {_sourceFile.FullName}");
           }
           else // Central storage file does not exist yet
           {
-            // if (!Directory.Exists(_centralStorageFolder))
-            //  Directory.CreateDirectory(_centralStorageFolder);
+            if (!Directory.Exists(_centralStorageFolder))
+            {
+              Directory.CreateDirectory(_centralStorageFolder);
+            }
 
             // create a hard link from the existing (old) backup file to the central storage file
             int hlr = FileUtilities.CreateHardLink(_sourceFile.FullName, _centralStorageFileName);
-            if (0 != hlr)
+            if (hlr != 0)
             {
               if (hlr == FileUtilities.ERROR_TOO_MANY_LINKS)
               {

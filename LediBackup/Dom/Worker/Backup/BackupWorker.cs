@@ -49,10 +49,10 @@ namespace LediBackup.Dom.Worker.Backup
     /// </summary>
     private string _todaysBackupFolder;
 
-    private Collector _collector;
-    private Reader _reader;
-    private Writer _writer;
-    private Hasher _hasher;
+    private ItemProducerCollection _producerCollection;
+    private BlockingThreadedPumpWithNonblockingSideChannel<WorkerItem> _readerQueue;
+    private BlockingThreadedPump<WorkerItem> _hasherQueue;
+    private BlockingThreadedPump<WorkerItem> _writerQueue;
     private SHA256Pool _sha256Pool;
     private BufferPool _bufferPool;
 
@@ -76,9 +76,9 @@ namespace LediBackup.Dom.Worker.Backup
 
     #region Diagnostics
 
-    public int NumberOfItemsInReader => _reader.NumberOfItemsInInputQueue;
-    public int NumberOfItemsInHasher => _hasher.NumberOfItemsInInputQueue;
-    public int NumberOfItemsInWriter => _writer.NumberOfItemsInInputQueue;
+    public int NumberOfItemsInReader => _readerQueue.NumberOfItemsInInputQueue;
+    public int NumberOfItemsInHasher => _hasherQueue.NumberOfItemsInInputQueue;
+    public int NumberOfItemsInWriter => _writerQueue.NumberOfItemsInInputQueue;
 
     public int NumberOfProcessedFiles => _numberOfItemsProcessed;
     public int NumberOfFailedFiles => _failedFiles.Count;
@@ -123,24 +123,25 @@ namespace LediBackup.Dom.Worker.Backup
 
       _backupCentralContentStorageFolder = System.IO.Path.Combine(backupMainFolder, Current.BackupContentFolderName);
       _backupCentralNameStorageFolder = System.IO.Path.Combine(backupMainFolder, Current.BackupNameFolderName);
-      _todaysBackupFolder = Path.Combine(backupMainFolder, DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"));
+      _todaysBackupFolder = Path.Combine(backupMainFolder, doc.GetBackupTodaysDirectoryName());
 
-      _collector = new Collector(this, _directoriesToBackup);
-      _reader = new Reader();
-      _hasher = new Hasher();
-      _writer = new Writer();
       _sha256Pool = new SHA256Pool();
       _bufferPool = new BufferPool();
 
-      _collector.OutputAvailable += EhCollector_OutputAvailable;
-      _reader.OutputAvailable += EhReader_OutputAvailable;
-      _hasher.OutputAvailable += EhHasher_OutputAvailable;
-      _writer.OutputAvailable += EhWriter_OutputAvailable;
+      _producerCollection = new ItemProducerCollection(this, _directoriesToBackup);
+      _readerQueue = new BlockingThreadedPumpWithNonblockingSideChannel<WorkerItem>(numberOfWorkerThreads: 1, maxNumberOfItemsInInputQueue: 10);
+      _hasherQueue = new BlockingThreadedPump<WorkerItem>(numberOfWorkerThreads: 8, maxNumberOfItemsInInputQueue: 20);
+      _writerQueue = new BlockingThreadedPump<WorkerItem>(numberOfWorkerThreads: 1, maxNumberOfItemsInInputQueue: 10);
+
+      _producerCollection.ItemAvailable += EhProducer_ItemAvailable;
+      _readerQueue.ItemAvailable += EhReaderQueue_ItemAvailable;
+      _hasherQueue.ItemAvailable += EhHasherQueue_ItemAvailable;
+      _writerQueue.ItemAvailable += EhWriterQueue_ItemAvailable;
     }
 
     public async Task Backup()
     {
-      if (_collector.IsDisposed || _reader.IsDisposed || _writer.IsDisposed || _hasher.IsDisposed)
+      if (_producerCollection.IsDisposed || _readerQueue.IsDisposed || _writerQueue.IsDisposed || _hasherQueue.IsDisposed)
         throw new ObjectDisposedException("Worker is disposed already");
 
       _cancellationTokenSource = new CancellationTokenSource();
@@ -155,9 +156,9 @@ namespace LediBackup.Dom.Worker.Backup
       var stopWatch = new Stopwatch();
       stopWatch.Start();
 
-      await _collector.Start(_cancellationTokenSource.Token);
+      await _producerCollection.Start(_cancellationTokenSource.Token);
 
-      while (!_reader.HasEmptyInputQueue || !_hasher.HasEmptyInputQueue || !_writer.HasEmptyInputQueue)
+      while (!_readerQueue.HasEmptyInputQueue || !_hasherQueue.HasEmptyInputQueue || !_writerQueue.HasEmptyInputQueue)
       {
         await Task.Delay(100);
       }
@@ -171,10 +172,10 @@ namespace LediBackup.Dom.Worker.Backup
 
 
 
-      _collector.Dispose();
-      _reader.Dispose();
-      _hasher.Dispose();
-      _writer.Dispose();
+      _producerCollection.Dispose();
+      _readerQueue.Dispose();
+      _hasherQueue.Dispose();
+      _writerQueue.Dispose();
 
       _sha256Pool.Dispose();
       _bufferPool.Dispose();
@@ -184,7 +185,7 @@ namespace LediBackup.Dom.Worker.Backup
 
     #region Logic that links Collector, Reader, Hasher and Writer
 
-    private void EhCollector_OutputAvailable(ReaderItem item)
+    private void EhProducer_ItemAvailable(WorkerItem item)
     {
       if (item.IsFailed)
       {
@@ -198,10 +199,10 @@ namespace LediBackup.Dom.Worker.Backup
         switch (item.NextStation)
         {
           case NextStation.Reader:
-            _reader.WaitForEnqueue(item);
+            _readerQueue.EnqueueBlocking(item);
             break;
           case NextStation.Writer:
-            _writer.WaitForEnqueue(item);
+            _writerQueue.EnqueueBlocking(item);
             break;
           default:
             _errorMessages.Enqueue($"Unexpected NextStation in CollectorOutput: {item.NextStation}");
@@ -211,20 +212,24 @@ namespace LediBackup.Dom.Worker.Backup
       }
     }
 
-    private void EhReader_OutputAvailable(ReaderItem item)
+    private void EhReaderQueue_ItemAvailable(WorkerItem item)
     {
+      item.Read();
+
       if (item.IsFailed)
       {
         Interlocked.Increment(ref _numberOfItemsProcessed);
       }
       else
       {
-        _hasher.Enqueue(item);
+        _hasherQueue.EnqueueBlocking(item);
       }
     }
 
-    private void EhHasher_OutputAvailable(ReaderItem item)
+    private void EhHasherQueue_ItemAvailable(WorkerItem item)
     {
+      item.Hash();
+
       if (item.IsFailed)
       {
         Interlocked.Increment(ref _numberOfItemsProcessed);
@@ -232,18 +237,20 @@ namespace LediBackup.Dom.Worker.Backup
       else
       {
         if (item.IsReadingCompleted)
-          _writer.WaitForEnqueue(item);
+          _writerQueue.EnqueueBlocking(item);
         else
-          _reader.Enqueue(item);
+          _readerQueue.EnqueueNonblocking(item);
       }
     }
 
-    private void EhWriter_OutputAvailable(ReaderItem item)
+    private void EhWriterQueue_ItemAvailable(WorkerItem item)
     {
+      item.Write();
+
       switch (item.NextStation)
       {
         case NextStation.Reader:
-          _reader.WaitForEnqueue(item);
+          _readerQueue.EnqueueBlocking(item);
           break;
         case NextStation.Finished:
           Interlocked.Increment(ref _numberOfItemsProcessed);
@@ -257,62 +264,8 @@ namespace LediBackup.Dom.Worker.Backup
 
     #endregion
 
-    /// <summary>
-    /// Given the file content hash, gets the full name of the central storage file.
-    /// </summary>
-    /// <param name="hash">The file content hash.</param>
-    /// <returns>The full name of the directory, and the full name of the central storage file).</returns>
-    /// <exception cref="NotImplementedException"></exception>
-    private (string DirectoryName, string FileFullName) GetNameOfCentralStorageFile(byte[] hash)
-    {
-      var stb = new StringBuilder();
 
-      stb.Clear();
-      stb.Append(_backupCentralContentStorageFolder);
-      stb.Append(Path.DirectorySeparatorChar);
 
-      for (int i = 0; i < 3; ++i)
-      {
-        stb.Append(hash[i].ToString("X2"));
-        stb.Append(Path.DirectorySeparatorChar);
-      }
 
-      var directoryName = stb.ToString();
-
-      for (int i = 0; i < hash.Length; ++i)
-      {
-        stb.Append(hash[i].ToString("X2"));
-      }
-      return (directoryName, stb.ToString());
-    }
-
-    /// <summary>
-    /// Given the file content hash, gets the full name of the central storage file.
-    /// </summary>
-    /// <param name="hash">The file content hash.</param>
-    /// <returns>The full name of the directory, and the full name of the central storage file).</returns>
-    /// <exception cref="NotImplementedException"></exception>
-    private (string DirectoryName, string FileFullName) GetNameOfCentralNameFile(byte[] hash)
-    {
-      var stb = new StringBuilder();
-
-      stb.Clear();
-      stb.Append(_backupCentralNameStorageFolder);
-      stb.Append(Path.DirectorySeparatorChar);
-
-      for (int i = 0; i < 3; ++i)
-      {
-        stb.Append(hash[i].ToString("X2"));
-        stb.Append(Path.DirectorySeparatorChar);
-      }
-
-      var directoryName = stb.ToString();
-
-      for (int i = 0; i < hash.Length; ++i)
-      {
-        stb.Append(hash[i].ToString("X2"));
-      }
-      return (directoryName, stb.ToString());
-    }
   }
 }

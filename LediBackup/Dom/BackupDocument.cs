@@ -14,11 +14,17 @@ using LediBackup.Serialization.Xml;
 
 namespace LediBackup.Dom
 {
+
+
   public class BackupDocument : INotifyPropertyChanged
   {
     private DirectoryList _directories;
     private string _backupMainFolder;
     private BackupMode _backupMode;
+    private string _backupTodaysDirectoryPreText;
+    private BackupTodaysDirectoryMiddleTextType _backupTodaysDirectoryMiddleText;
+    private string _backupTodaysDirectoryPostText;
+
     public bool _isDirty;
 
 
@@ -27,8 +33,12 @@ namespace LediBackup.Dom
 
     public BackupDocument()
     {
-      _backupMainFolder = string.Empty;
       _backupMode = BackupMode.Fast;
+      _backupMainFolder = string.Empty;
+      _backupTodaysDirectoryPreText = string.Empty;
+      _backupTodaysDirectoryMiddleText = BackupTodaysDirectoryMiddleTextType.YearMonthDay;
+      _backupTodaysDirectoryPostText = string.Empty;
+
       _directories = new DirectoryList();
       _directories.CollectionChanged += (s, e) => IsDirty = true;
     }
@@ -55,6 +65,9 @@ namespace LediBackup.Dom
 
         info.AddValue("BackupMode", s._backupMode);
         info.AddValue("BackupMainFolder", s._backupMainFolder);
+        info.AddValue("BackupTodaysFolderPreText", s._backupTodaysDirectoryPreText);
+        info.AddEnum("BackupTodaysFolderMiddleText", s._backupTodaysDirectoryMiddleText);
+        info.AddValue("BackupTodaysFolderPostText", s._backupTodaysDirectoryPostText);
         info.AddValue("BackupDirectories", s._directories);
         s.IsDirty = false;
       }
@@ -63,10 +76,12 @@ namespace LediBackup.Dom
       {
         var s = o as BackupDocument ?? new BackupDocument();
 
-        if (info.CurrentElementName == "BackupMode")
-          s.BackupMode = (BackupMode)info.GetEnum("BackupMode", typeof(BackupMode));
-
+        s.BackupMode = (BackupMode)info.GetEnum("BackupMode", typeof(BackupMode));
         s.BackupMainFolder = info.GetString("BackupMainFolder");
+
+        s.BackupTodaysDirectoryPreText = info.GetString("BackupTodaysFolderPreText");
+        s.BackupTodaysDirectoryMiddleText = (BackupTodaysDirectoryMiddleTextType)info.GetEnum("BackupTodaysFolderMiddleText", typeof(BackupTodaysDirectoryMiddleTextType));
+        s.BackupTodaysDirectoryPostText = info.GetString("BackupTodaysFolderPostText");
 
         var dirs = (DirectoryList)(info.GetValue("BackupDirectories", s) ?? throw new InvalidOperationException());
 
@@ -109,6 +124,63 @@ namespace LediBackup.Dom
           OnPropertyChanged(nameof(BackupMainFolder));
           IsDirty = true;
         }
+      }
+    }
+
+    public string BackupTodaysDirectoryPreText
+    {
+      get => _backupTodaysDirectoryPreText;
+      set
+      {
+        if (!(_backupTodaysDirectoryPreText == value))
+        {
+          _backupTodaysDirectoryPreText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPreText));
+          IsDirty = true;
+        }
+      }
+    }
+
+    public string BackupTodaysDirectoryPostText
+    {
+      get => _backupTodaysDirectoryPostText;
+      set
+      {
+        if (!(_backupTodaysDirectoryPostText == value))
+        {
+          _backupTodaysDirectoryPostText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPostText));
+          IsDirty = true;
+        }
+      }
+    }
+
+    public BackupTodaysDirectoryMiddleTextType BackupTodaysDirectoryMiddleText
+    {
+      get => _backupTodaysDirectoryMiddleText;
+      set
+      {
+        if (!(_backupTodaysDirectoryMiddleText == value))
+        {
+          _backupTodaysDirectoryMiddleText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryMiddleText));
+          IsDirty = true;
+        }
+      }
+    }
+
+    public string GetBackupTodaysDirectoryName()
+    {
+      switch (_backupTodaysDirectoryMiddleText)
+      {
+        case BackupTodaysDirectoryMiddleTextType.YearMonthDay_HourMinuteSecond:
+          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("YYYY-MM-dd HH-mm-ss"), BackupTodaysDirectoryPostText);
+        case BackupTodaysDirectoryMiddleTextType.YearMonthDay:
+          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("YYYY-MM-dd"), BackupTodaysDirectoryPostText);
+        case BackupTodaysDirectoryMiddleTextType.None:
+          return string.Concat(BackupTodaysDirectoryPreText, BackupTodaysDirectoryPostText);
+        default:
+          throw new NotImplementedException();
       }
     }
 

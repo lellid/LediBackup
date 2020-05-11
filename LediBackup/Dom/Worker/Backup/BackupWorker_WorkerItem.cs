@@ -15,6 +15,9 @@ namespace LediBackup.Dom.Worker.Backup
 {
   public partial class BackupWorker
   {
+    /// <summary>
+    /// Designates the next station the item should be processed.
+    /// </summary>
     public enum NextStation
     {
       Reader,
@@ -36,7 +39,7 @@ namespace LediBackup.Dom.Worker.Backup
     /// The name of the central content file is determined by the hash of the file content.
     /// The name of the central name file is determined by the hash of the original file's metadata (length, last write time, attributes, and full name).
     /// </remarks>
-    public class ReaderItem
+    public class WorkerItem
     {
       private BackupWorker _parent;
       private FileInfo _sourceFile;
@@ -70,7 +73,7 @@ namespace LediBackup.Dom.Worker.Backup
       /// <summary>True if the name of the central content file is known (by calculating the hash of the content).</summary>
       public bool IsContentFileNameKnown => !string.IsNullOrEmpty(_centralContentFileName);
 
-      public ReaderItem(BackupWorker parent, FileInfo sourceFile, string destinationFileName)
+      public WorkerItem(BackupWorker parent, FileInfo sourceFile, string destinationFileName, byte[] nameBufferPreText)
       {
         _parent = parent;
         _sourceFile = sourceFile;
@@ -86,7 +89,7 @@ namespace LediBackup.Dom.Worker.Backup
         var backupMode = _parent._backupMode;
         if (backupMode == BackupMode.Fast)
         {
-          EvaluateCentralNameFileName();
+          EvaluateCentralNameFileName(nameBufferPreText);
           NextStation = NextStation.Writer; // we first try to use the central name file
         }
         else
@@ -104,13 +107,14 @@ namespace LediBackup.Dom.Worker.Backup
       /// Note that metadata like length, dates and attributes are not included in the hash.
       /// This is because they can easily compared using the metadata of the central name file.
       /// </summary>
-      public void EvaluateCentralNameFileName()
+      public void EvaluateCentralNameFileName(byte[] nameBufferPreText)
       {
         var sha256 = _parent._sha256Pool.LendFromPool();
         var buffer = _parent._bufferPool.LendFromPool(65536);
-        var bufferBytes = UnicodeEncoding.Unicode.GetBytes(_sourceFile.FullName, 0, _sourceFile.FullName.Length, buffer, 0);
+        Array.Copy(nameBufferPreText, buffer, nameBufferPreText.Length);
+        var bufferBytes = nameBufferPreText.Length + UnicodeEncoding.Unicode.GetBytes(_sourceFile.FullName, 0, _sourceFile.FullName.Length, buffer, nameBufferPreText.Length);
         sha256.TransformFinalBlock(buffer, 0, bufferBytes);
-        (_, _centralNameFileName) = _parent.GetNameOfCentralNameFile(sha256.Hash);
+        (_, _centralNameFileName) = FileUtilities.GetNameOfCentralStorageFile(_parent._backupCentralNameStorageFolder, sha256.Hash);
         _parent._bufferPool.ReturnToPool(buffer);
         _parent._sha256Pool.ReturnToPool(sha256);
       }
@@ -195,7 +199,7 @@ namespace LediBackup.Dom.Worker.Backup
           if (IsReadingCompleted)
           {
             _sha256.TransformFinalBlock(_buffer, 0, _bytesInBuffer);
-            (_centralContentFolder, _centralContentFileName) = _parent.GetNameOfCentralStorageFile(_sha256.Hash);
+            (_centralContentFolder, _centralContentFileName) = FileUtilities.GetNameOfCentralStorageFile(_parent._backupCentralContentStorageFolder, _sha256.Hash);
             _parent._sha256Pool.ReturnToPool(ref _sha256);
 
             // if this was a big file, so that the buffer contains only a part of a file

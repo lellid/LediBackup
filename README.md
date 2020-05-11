@@ -8,6 +8,7 @@
 - No special program neccessary to restore your files. Simply copy them back from your backup drive into your working folder.
 - No special program required to delete some of the backup folders, if you no longer need them. Simply delete them in Explorer.
 - Can handle long file names without changing the registry. 
+- You can on a daily basis decide which folder to backup, this will not influence the storage efficiency.
 
 ## What LediBackup can not do for you
 - LediBackup does not retain alternate file streams of NTFS (additional data that are associcated with the main file)
@@ -65,9 +66,10 @@ use always the same drive letter for the same substituted path
  
 
 You can safely:
+- decide to backup only some of the folders today; this will not diminish the storage efficiency of the following backups.
 - delete a directory that contains a backup on the backup drive, if you don't need it anymore.
-- delete the central content storage directory `(~CCS~)` on the backup drive (the storage efficiency is slighly diminished for the next backup)
-- delete the central names storage directory `(~CNS~)` on the backup drive (the backup speed is somewhat diminished for the next backup)
+- delete the central content storage directory `(~CCS~)` on the backup drive (the storage efficiency is slighly diminished for the next backup).
+- delete the central names storage directory `(~CNS~)` on the backup drive (the backup speed is somewhat diminished for the next backup).
 
 
 You should NEVER EVER:

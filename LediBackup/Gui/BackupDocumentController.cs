@@ -75,6 +75,47 @@ namespace LediBackup.Gui
       }
     }
 
+    public string BackupTodaysDirectoryPreText
+    {
+      get => _doc.BackupTodaysDirectoryPreText;
+      set
+      {
+        if (!(_doc.BackupTodaysDirectoryPreText == value))
+        {
+          _doc.BackupTodaysDirectoryPreText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPreText));
+        }
+      }
+    }
+
+    public string BackupTodaysDirectoryPostText
+    {
+      get => _doc.BackupTodaysDirectoryPostText;
+      set
+      {
+        if (!(_doc.BackupTodaysDirectoryPostText == value))
+        {
+          _doc.BackupTodaysDirectoryPostText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPostText));
+        }
+      }
+    }
+
+    public BackupTodaysDirectoryMiddleTextType BackupTodaysDirectoryMiddleText
+    {
+      get => _doc.BackupTodaysDirectoryMiddleText;
+      set
+      {
+        if (!(_doc.BackupTodaysDirectoryMiddleText == value))
+        {
+          _doc.BackupTodaysDirectoryMiddleText = value;
+          OnPropertyChanged(nameof(BackupTodaysDirectoryMiddleText));
+        }
+      }
+    }
+
+    public object BackupTodaysDirectoryMiddleTextCollection { get; } = Enum.GetValues(typeof(BackupTodaysDirectoryMiddleTextType));
+
     public ObservableCollection<DirectoryEntry> BackupDirectories => _doc.Directories;
 
     private DirectoryEntry? _selectedDirectory;
@@ -175,6 +216,19 @@ namespace LediBackup.Gui
 
     private async void EhReorganizeOldBackup()
     {
+      if (MessageBoxResult.Yes != MessageBox.Show(
+        $"This will reorganize your backups stored in {_doc.BackupMainFolder}\r\n" +
+        "This folder should be the main folder that contains all backups on this drive.\r\n" +
+        "\r\n" +
+        "Do you want to proceed?",
+        "Proceed?",
+        MessageBoxButton.YesNo,
+        MessageBoxImage.Question
+        ))
+      {
+        return;
+      }
+
       try
       {
         var worker = new Dom.Worker.ReworkOldBackup.BackupReworker(_doc.BackupMainFolder);

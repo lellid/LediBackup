@@ -23,7 +23,7 @@ namespace LediBackup.Dom.Worker.ReworkOldBackup
     /// should be bundled in only one CollectorItem (and not in multiple CollectorItems).
     /// This helps avoiding simultaneous disc access from multiple threads.
     /// </summary>
-    public class Collector
+    public class ItemProducer
     {
       private BackupReworker _parent;
       private string _backupDirectory;
@@ -40,16 +40,20 @@ namespace LediBackup.Dom.Worker.ReworkOldBackup
       /// <param name="parent">The parent backup worker instance.</param>
       /// <param name="entries">The directory entries that should be bundled in this CollectorItem. See class comment
       /// in which way the DirectoryEntries should be bundled.</param>
-      public Collector(BackupReworker parent, string backupDirectory)
+      public ItemProducer(BackupReworker parent, string backupDirectory)
       {
         _parent = parent;
         _backupDirectory = backupDirectory ?? throw new ArgumentNullException();
+        if (!_backupDirectory.StartsWith(@"\\"))
+        {
+          _backupDirectory = @"\\?\" + _backupDirectory;
+        }
       }
 
       /// <summary>
       /// Occurs when a <see cref="WorkerItem"/> is available.
       /// </summary>
-      public event Action<WorkerItem>? OutputAvailable;
+      public event Action<WorkerItem>? ItemAvailable;
 
 
       /// <summary>
@@ -90,7 +94,7 @@ namespace LediBackup.Dom.Worker.ReworkOldBackup
                 break;
 
               var readerItem = new WorkerItem(_parent, sourceFile);
-              OutputAvailable?.Invoke(readerItem);
+              ItemAvailable?.Invoke(readerItem);
             }
           }
         }

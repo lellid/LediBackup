@@ -6,6 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -92,6 +93,41 @@ namespace LediBackup.Dom
     }
 
     public const int BufferSpaceForLengthWriteTimeAndFileAttributes = 20;
+
+    /// <summary>
+    /// Given the file content hash, gets the full name of the central storage file.
+    /// </summary>
+    /// <param name="hash">The file content hash.</param>
+    /// <returns>The full name of the directory, and the full name of the central storage file).</returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public static (string DirectoryName, string FileFullName) GetNameOfCentralStorageFile(string backupCentralStorageFolder, byte[] hash)
+    {
+      if (!_stringBuilderPool.TryTake(out var stb))
+        stb = new StringBuilder();
+
+      stb.Clear();
+      stb.Append(backupCentralStorageFolder);
+      stb.Append(Path.DirectorySeparatorChar);
+
+      for (int i = 0; i < 2; ++i)
+      {
+        stb.Append(hash[i].ToString("X2"));
+        stb.Append(Path.DirectorySeparatorChar);
+      }
+
+      var directoryName = stb.ToString();
+
+      for (int i = 0; i < hash.Length; ++i)
+      {
+        stb.Append(hash[i].ToString("X2"));
+      }
+
+      var fileName = stb.ToString();
+      _stringBuilderPool.Add(stb);
+      return (directoryName, fileName);
+    }
+
+    private static readonly ConcurrentBag<StringBuilder> _stringBuilderPool = new ConcurrentBag<StringBuilder>();
 
   }
 }

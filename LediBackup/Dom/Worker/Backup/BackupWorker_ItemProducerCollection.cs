@@ -21,42 +21,42 @@ namespace LediBackup.Dom.Worker.Backup
   {
 
     /// <summary>
-    /// Enumerate files in directories and subdirectories, and creates <see cref="ReaderItem"/>s from the file names.
-    /// This class utilize one or more <see cref="CollectorItem"/>, each of the items running on an individual task.
+    /// Enumerate files in directories and subdirectories, and creates <see cref="WorkerItem"/>s from the file names.
+    /// This class utilize one or more <see cref="ItemProducer"/>, each of the items running on an individual task.
     /// When backing up from different physical hard disks, the folders are bundled in a way that the folders belonging 
-    /// to the same physical disk are bundled in one <see cref="CollectorItem"/> in order to avoid simulateneous access
+    /// to the same physical disk are bundled in one <see cref="ItemProducer"/> in order to avoid simulateneous access
     /// to the physical hard disk by more than one thread.
     /// </summary>
-    public class Collector
+    public class ItemProducerCollection
     {
       /// <summary>
-      /// Occurs when a <see cref="ReaderItem"/> is available.
+      /// Occurs when a <see cref="WorkerItem"/> is available.
       /// </summary>
-      public event Action<ReaderItem>? OutputAvailable;
+      public event Action<WorkerItem>? ItemAvailable;
 
       public bool IsDisposed { get; private set; }
 
-      private CollectorItem[] _collectorItems;
+      private ItemProducer[] _collectorItems;
 
       /// <summary>
-      /// Initializes a new instance of the <see cref="Collector"/> class.
+      /// Initializes a new instance of the <see cref="ItemProducerCollection"/> class.
       /// </summary>
       /// <param name="parent">The parent worker instance.</param>
       /// <param name="entries">All directory entries that should be backuped.</param>
-      public Collector(BackupWorker parent, Dom.DirectoryEntryReadonly[] entries)
+      public ItemProducerCollection(BackupWorker parent, Dom.DirectoryEntryReadonly[] entries)
       {
         // TODO find out, which entries belong to which hard disk
         // Entries with the same hard disk should be grouped in one CollectorItem, since they should be evaluated sequential
         // Entries with different hard disk can be put in different CollectorItems.
 
-        _collectorItems = new CollectorItem[1];
-        var item = new CollectorItem(parent, entries);
-        item.OutputAvailable += item => OutputAvailable?.Invoke(item);
+        _collectorItems = new ItemProducer[1];
+        var item = new ItemProducer(parent, entries);
+        item.OutputAvailable += item => ItemAvailable?.Invoke(item);
         _collectorItems[0] = item;
       }
 
       /// <summary>
-      /// Starts the Task that creates the <see cref="ReaderItem"/>s.
+      /// Starts the Task that creates the <see cref="WorkerItem"/>s.
       /// </summary>
       /// <param name="cancellationToken">The cancellation token.</param>
       /// <returns>A task that can be awaited.</returns>
