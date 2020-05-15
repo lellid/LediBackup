@@ -49,7 +49,6 @@ namespace LediBackup.Dom.Worker.PruneCentralContentStorage
     public void WorkerLoop()
     {
       var cancellationToken = _cancellationTokenSource.Token;
-      var list = new List<FileInfo>();
 
       // first of all, delete the contents of the central name directory
       if (Directory.Exists(_centralNameDirectory))
@@ -98,7 +97,10 @@ namespace LediBackup.Dom.Worker.PruneCentralContentStorage
             var links = FileUtilities.GetNumberOfLinks(fi.FullName);
             if (links <= numberOfLinks)
             {
-              fi.IsReadOnly = false;
+              if (fi.IsReadOnly)
+              {
+                fi.IsReadOnly = false;
+              }
               fi.Delete();
               ++_numberOfProcessedFiles;
             }

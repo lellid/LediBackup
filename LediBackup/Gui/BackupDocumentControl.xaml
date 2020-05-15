@@ -27,7 +27,8 @@
             <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
-            <RowDefinition Height="Auto" />
+            
+            <RowDefinition Height="*" />
             <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
@@ -37,13 +38,14 @@
             <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="4" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="4" />
+            
             <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="4" />
@@ -70,7 +72,7 @@
             Command="{Binding CmdChooseBackupBaseDirectory}"
             Content="..." />
         <GroupBox Grid.Row="6" Header="Today's backup subdirectory:">
-        <Grid Grid.Row="8">
+        <Grid >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -89,9 +91,9 @@
                 <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding BackupTodaysDirectoryPostText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </Grid>
         </GroupBox>
-        <Label Grid.Row="10" Content="Directories to backup:" />
+        <Label Grid.Row="8" Content="Directories to backup:" />
         <ListView
-            Grid.Row="12"
+            Grid.Row="10"
             ItemsSource="{Binding BackupDirectories}"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             SelectedItem="{Binding SelectedDirectory}">
@@ -123,7 +125,7 @@
         </ListView>
 
         <StackPanel
-            Grid.Row="12"
+            Grid.Row="10"
             Grid.Column="2"
             Orientation="Vertical">
             <Button
@@ -148,7 +150,7 @@
                 Content="X" />
         </StackPanel>
 
-        <GroupBox Grid.Row="14" Header="Backup mode:">
+        <GroupBox Grid.Row="12" Header="Backup mode:">
             <StackPanel Orientation="Vertical">
                 <RadioButton
                     Content="Fast"
@@ -161,7 +163,7 @@
             </StackPanel>
         </GroupBox>
 
-        <StackPanel Grid.Row="16" Orientation="Horizontal">
+        <StackPanel Grid.Row="14" Orientation="Horizontal">
             <Label Content="ReaderItems:" />
             <Label MinWidth="50" Content="{Binding NumberOfItemsInReader}" />
             <Label Content="HasherItems:" />
@@ -173,21 +175,21 @@
             <Label Content="Failed Items:" />
             <Label MinWidth="50" Content="{Binding NumberOfFailedFiles}" />
         </StackPanel>
-        <Label Grid.Row="18" Content="Currently processed file:" />
-        <Label Grid.Row="20" Content="{Binding NameOfProcessedFile}" />
-        <Label Grid.Row="22" Content="Errors:" />
+        <Label Grid.Row="16" Content="Currently processed file:" />
+        <Label Grid.Row="18" Content="{Binding NameOfProcessedFile}" />
+        <Label Grid.Row="20" Content="Errors:" />
         <ListView
-            Grid.Row="24"
+            Grid.Row="22"
             ItemsSource="{Binding ErrorMessages}"
             ScrollViewer.VerticalScrollBarVisibility="Visible" />
         <Button
-            Grid.Row="26"
+            Grid.Row="24"
             Background="LightPink"
             Command="{Binding CmdCancelBackup}"
             Content="Cancel Backup"
             Visibility="{Binding IsBackupActive, Converter={StaticResource VisibilityHiddenForFalseConverter}}" />
         <Button
-            Grid.Row="26"
+            Grid.Row="24"
             Background="LightGreen"
             Command="{Binding CmdStartBackup}"
             Content="Start Backup"
