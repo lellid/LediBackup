@@ -57,6 +57,7 @@
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Command="{Binding CmdReorganizeOldBackup}" Header="Reorganize old backup.." />
+                <MenuItem Command="{Binding CmdPruneCentralContentStorageDirectory}" Header="Prune central content storage directory.." />
             </MenuItem>
         </Menu>
 

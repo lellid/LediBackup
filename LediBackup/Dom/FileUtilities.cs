@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 namespace LediBackup.Dom
 {
@@ -129,5 +130,71 @@ namespace LediBackup.Dom
 
     private static readonly ConcurrentBag<StringBuilder> _stringBuilderPool = new ConcurrentBag<StringBuilder>();
 
+
+    #region Retrieving the number of links
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    private struct BY_HANDLE_FILE_INFORMATION
+    {
+      public uint FileAttributes;
+      public ulong CreationTime;
+      public ulong LastAccessTime;
+      public ulong LastWriteTime;
+      public uint VolumeSerialNumber;
+      public uint FileSizeHigh;
+      public uint FileSizeLow;
+      public uint NumberOfLinks;
+      public uint FileIndexHigh;
+      public uint FileIndexLow;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool GetFileInformationByHandle(SafeFileHandle hFile, out BY_HANDLE_FILE_INFORMATION fileInfo);
+
+    [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern SafeFileHandle CreateFile(
+        string fileName,
+        [MarshalAs(UnmanagedType.U4)] FileAccess fileAccess,
+        [MarshalAs(UnmanagedType.U4)] FileShare fileShare,
+        IntPtr securityAttributes, // optional SECURITY_ATTRIBUTES structure can be passed
+        [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
+        [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
+        IntPtr template);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CloseHandle(SafeFileHandle hObject);
+
+    public static int GetNumberOfLinks(string fullName)
+    {
+      using (var handle = CreateFile(
+         fullName,
+         0, // 0: only access to get attributes
+         0, // is ignored for only getting attributes
+         IntPtr.Zero, // Security attributes
+         FileMode.Open,
+         FileAttributes.Normal,
+         IntPtr.Zero
+         ))
+      {
+        if (handle.IsInvalid)
+        {
+          Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+        }
+
+        if (true == GetFileInformationByHandle(handle, out var fileInfo))
+        {
+          var numberOfLinks = (int)fileInfo.NumberOfLinks;
+          return numberOfLinks;
+        }
+        else
+        {
+          var lastError = Marshal.GetLastWin32Error();
+          throw new IOException($"Error GetFileInformationByHandle, ErrorCode: {lastError}");
+        }
+      }
+    }
+
+    #endregion
   }
 }

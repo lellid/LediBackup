@@ -47,6 +47,7 @@ namespace LediBackup.Gui
       CmdStartBackup = new RelayCommand(EhStartBackup);
       CmdCancelBackup = new RelayCommand(EhCancelBackup);
       CmdReorganizeOldBackup = new RelayCommand(EhReorganizeOldBackup);
+      CmdPruneCentralContentStorageDirectory = new RelayCommand(EhPruneCentralContentStorageDirectory);
       CmdChooseBackupBaseDirectory = new RelayCommand(EhChooseBackupDirectory);
       CmdNewDirectoryEntry = new RelayCommand(EhNewDirectoryEntry);
       CmdEditDirectoryEntry = new RelayCommand(EhEditDirectoryEntry);
@@ -163,6 +164,8 @@ namespace LediBackup.Gui
     public ICommand CmdStartBackup { get; }
     public ICommand CmdCancelBackup { get; }
     public ICommand CmdReorganizeOldBackup { get; }
+
+    public ICommand CmdPruneCentralContentStorageDirectory { get; }
     public ICommand CmdChooseBackupBaseDirectory { get; }
 
     public ICommand CmdNewDirectoryEntry { get; }
@@ -236,6 +239,42 @@ namespace LediBackup.Gui
 
         MessageBox.Show(
           $"Reorganizing completed in {worker.Duration.TotalSeconds} s!\r\n\r\n" +
+          $"{NumberOfProcessedFiles} items processed,\r\n" +
+          $"{worker.ErrorMessages.Count} errors.",
+          "Reorganizing completed!",
+          MessageBoxButton.OK,
+          MessageBoxImage.Information
+          );
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Got an exception!\r\n\r\nDetails:\r\n{ex.Message}", "Exception catched!", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+
+    private async void EhPruneCentralContentStorageDirectory()
+    {
+      if (MessageBoxResult.Yes != MessageBox.Show(
+        "This will walk through your central content storage directory ({Path.Combine(_doc.BackupMainFolder, Current.BackupContentFolderName)}) and delete the files that are no longer in use.\r\n" +
+        "Please note that this additionally will require to delete the content of the central name directory ({Path.Combine(_doc.BackupMainFolder, Current.BackupNameFolderName)}).\r\n" +
+        "This will slow down the backup speed of the next backup somewhat.\r\n" +
+        "\r\n" +
+        "Do you want to proceed?",
+        "Proceed?",
+        MessageBoxButton.YesNo,
+        MessageBoxImage.Question
+        ))
+      {
+        return;
+      }
+
+      try
+      {
+        var worker = new Dom.Worker.PruneCentralContentStorage.PruneCentralContentStorageWorker(_doc.BackupMainFolder);
+        await StartBackup(worker);
+
+        MessageBox.Show(
+          $"Pruning completed in {worker.Duration.TotalSeconds} s!\r\n\r\n" +
           $"{NumberOfProcessedFiles} items processed,\r\n" +
           $"{worker.ErrorMessages.Count} errors.",
           "Reorganizing completed!",

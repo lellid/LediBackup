@@ -78,3 +78,35 @@ backup drive only to restore lost files by copying them back to your working dir
 If you change files directly on your backup drive, you have good chances to unintendedly change files from
 other backups, too, because the files are hard-linked to each other!
 
+## For developers: Design decisions
+
+### Why the subdirectories level under the central content storage directory (`~CCS~`) is 2
+
+NTFS supports 2^32^ files on a volume. In the first level we have 256 (2^8^) subdirectories,
+each subdirectory containing up to 2^8^ files. This are up to 2^16^=65536 total subdirectories in the second level.
+For a typical backup directory, we will have some million files. In that case,
+in the average we have 15 or more files in one level2 subdirectory, which is a good number.
+In the worst case, we will have 2^15^=32768 files in one subdirectory, which is acceptable
+(its 2^15^ and not 2^16^ because for each file to backup we have both the backup file itself and the hardlinked file in the central content storage directory).
+
+Would we have chosen 3 subdirectory levels, we could have 2^24^ subdirectories.
+For the typical case of some million backup files, that would mean that in the average
+we would only have one file per subdirectory. This is wasteful.
+
+### Why is the architecture of the worker structure so complicated?
+
+Reading from a hard disk is fastest, if only one thread is accessing the volume.
+Using more that one thread for that task, the reading speed is lessened, instead of increased,
+because the disk is busy with repositioning operations. The same is true for writing to a hard disk.
+
+That is why a single task is used for reading content from the volume to backup and a single task is used for writing files to the backup drive.
+On the other hand, hashing the content is only calculation, thus multiple tasks (in the limits of the CPU cores) can work
+in parallel to hash the content of different files.
+
+For these reasons the architecture of the worker is like this (simplified):
+
+- a single thread is reading the content of the file, then of the next file, and so on. The items are put in a queue, waiting to be hashed.
+- multiple threads are trying to get items from the queue, and then calculating the hash of the file contents.
+When the hash is calculated, the item is put in the writing queue.
+- a single thread gets the item from the writing queue, and writes the content of the file
+to the backup medium. Additionally, it creates a hardlink into the central content storage directory. 
