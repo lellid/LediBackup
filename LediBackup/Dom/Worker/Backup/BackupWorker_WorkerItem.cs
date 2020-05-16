@@ -99,7 +99,6 @@ namespace LediBackup.Dom.Worker.Backup
 
         _stream = Stream.Null;
         _streamLength = 0;
-
       }
 
       /// <summary>
@@ -160,8 +159,11 @@ namespace LediBackup.Dom.Worker.Backup
       {
         try
         {
-          _stream = new FileStream(_sourceFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-          _streamLength = _stream.Length;
+          if (object.ReferenceEquals(_stream, Stream.Null))
+          {
+            _stream = new FileStream(_sourceFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            _streamLength = _stream.Length;
+          }
 
           _buffer ??= _parent._bufferPool.LendFromPool(_streamLength + FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes);
           _bytesInBuffer = 0;
