@@ -125,6 +125,9 @@ namespace LediBackup.Dom.Worker.Backup
       _backupCentralNameStorageFolder = System.IO.Path.Combine(backupMainFolder, Current.BackupNameFolderName);
       _todaysBackupFolder = Path.Combine(backupMainFolder, doc.GetBackupTodaysDirectoryName());
 
+      if (Directory.Exists(_todaysBackupFolder))
+        throw new ArgumentException($"The today's backup folder {_todaysBackupFolder} exists already. Overwriting an existing backup is not supported. Please choose another folder for today's backup!");
+
       _sha256Pool = new SHA256Pool();
       _bufferPool = new BufferPool();
 

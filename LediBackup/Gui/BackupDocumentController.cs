@@ -462,6 +462,11 @@ namespace LediBackup.Gui
           var project = (BackupDocument)(s.GetValue("Project", null) ?? throw new InvalidDataException("Deserializing the project gets not a value"));
           Current.Project.CopyFrom(project);
           OnPropertyChanged(nameof(BackupBaseDirectory));
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPreText));
+          OnPropertyChanged(nameof(BackupTodaysDirectoryMiddleText));
+          OnPropertyChanged(nameof(BackupTodaysDirectoryPostText));
+          OnPropertyChanged(nameof(BackupModeIsSecure));
+          OnPropertyChanged(nameof(BackupModeIsFast));
         }
 
         Current.FileName = fileName;

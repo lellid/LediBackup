@@ -47,9 +47,12 @@ namespace LediBackup.Dom
     {
       if (other is null) throw new ArgumentNullException(nameof(other));
 
-      BackupMainFolder = other.BackupMainFolder;
-      _directories.CopyFrom(other._directories);
       BackupMode = other.BackupMode;
+      BackupMainFolder = other.BackupMainFolder;
+      BackupTodaysDirectoryPreText = other.BackupTodaysDirectoryPreText;
+      BackupTodaysDirectoryMiddleText = other.BackupTodaysDirectoryMiddleText;
+      BackupTodaysDirectoryPostText = other.BackupTodaysDirectoryPostText;
+      _directories.CopyFrom(other._directories);
       IsDirty = other.IsDirty;
     }
 
@@ -63,7 +66,7 @@ namespace LediBackup.Dom
       {
         var s = (BackupDocument)o ?? throw new ArgumentNullException(nameof(o));
 
-        info.AddValue("BackupMode", s._backupMode);
+        info.AddEnum("BackupMode", s._backupMode);
         info.AddValue("BackupMainFolder", s._backupMainFolder);
         info.AddValue("BackupTodaysFolderPreText", s._backupTodaysDirectoryPreText);
         info.AddEnum("BackupTodaysFolderMiddleText", s._backupTodaysDirectoryMiddleText);
@@ -174,9 +177,9 @@ namespace LediBackup.Dom
       switch (_backupTodaysDirectoryMiddleText)
       {
         case BackupTodaysDirectoryMiddleTextType.YearMonthDay_HourMinuteSecond:
-          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("YYYY-MM-dd HH-mm-ss"), BackupTodaysDirectoryPostText);
+          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss"), BackupTodaysDirectoryPostText);
         case BackupTodaysDirectoryMiddleTextType.YearMonthDay:
-          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("YYYY-MM-dd"), BackupTodaysDirectoryPostText);
+          return string.Concat(BackupTodaysDirectoryPreText, DateTime.Now.ToString("yyyy-MM-dd"), BackupTodaysDirectoryPostText);
         case BackupTodaysDirectoryMiddleTextType.None:
           return string.Concat(BackupTodaysDirectoryPreText, BackupTodaysDirectoryPostText);
         default:

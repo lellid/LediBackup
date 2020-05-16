@@ -1,4 +1,11 @@
-﻿using System;
+﻿/////////////////////////////////////////////////////////////////////////////
+//    LediBackup: Copyright (C) 2020 Dr. Dirk Lellinger
+//    All rights reserved.
+//    This file is licensed to you under the MIT license.
+//    See the LICENSE file in the project root for more information.
+/////////////////////////////////////////////////////////////////////////////
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -53,8 +60,11 @@ namespace LediBackup.Dom.Worker.PruneCentralContentStorage
       // first of all, delete the contents of the central name directory
       if (Directory.Exists(_centralNameDirectory))
       {
-        // delete the central name files, if its link number is equal to or less than 2
-        DeleteCentralFiles(_centralNameDirectory, 2, cancellationToken);
+        // delete all central name files
+        // because in the central name files directory, there can exist multiple files with different names,
+        // that are all linked together, we must delete them all
+        // the catch is that we have to reset the readonly flag in order to delete the files
+        DeleteCentralFiles(_centralNameDirectory, int.MaxValue, cancellationToken);
       }
 
       // now delete the files in the central content storage, if its link number is equal to or less than 1
@@ -65,9 +75,9 @@ namespace LediBackup.Dom.Worker.PruneCentralContentStorage
     /// Deletes the central files, if the number of links falls below given number.
     /// </summary>
     /// <param name="centralDirectory">The central directory (either the central content storage directory, or the central name directory).</param>
-    /// <param name="numberOfLinks">The number of links. If the current number of links is equal to or below than this number, the file will be deleted.</param>
+    /// <param name="maxNumberOfLinks">The number of links. If the current number of links is equal to or below than this number, the file will be deleted.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private void DeleteCentralFiles(string centralDirectory, int numberOfLinks, CancellationToken cancellationToken)
+    private void DeleteCentralFiles(string centralDirectory, int maxNumberOfLinks, CancellationToken cancellationToken)
     {
       var list = new List<FileInfo>();
       for (int i = 0; i < 256; ++i)
@@ -95,7 +105,7 @@ namespace LediBackup.Dom.Worker.PruneCentralContentStorage
           try
           {
             var links = FileUtilities.GetNumberOfLinks(fi.FullName);
-            if (links <= numberOfLinks)
+            if (links <= maxNumberOfLinks)
             {
               if (fi.IsReadOnly)
               {

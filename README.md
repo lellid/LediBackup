@@ -35,6 +35,18 @@ The process steps are as follows:
 - The original file is copied to the central content file.
 - A hardlinked is created, linking the central content file to the backup file.
 
+#### Advantages of secure backup mode
+- The contents of the file is always hashed, so there could be no error about
+the link to the file in the central content storage directory. Even if a program changed the content
+without changing the write time (which should be very seldom, the changed file will be backuped.
+- Because the file is opened and the contents read, the virus scanner will always have a look to the content,
+thus an alarm is raised when you try to backup a file that is malicious.
+
+#### Disadvantages of secure backup mode
+- Because the virus scanner is always having a look at the file contents, in most cases the backup speed is 
+limited by the speed of the virus scanner.
+
+
 ### Fast backup mode
 
 Reading the file content and hashing the content are time consuming steps.
@@ -55,6 +67,19 @@ and an old version of the file will be stored on the backup drive instead.
 Hopefully, such programs are very seldom, and probably malicious, so the altered file
 should not be stored on the backup drive anyway!
 But if you are unsure about it, do not use this 'speed-up feature'! Instead, always do a full hash of the file content.
+
+#### Advantages of fast backup mode
+- If there was a previous backup, and only a few files have changed compared with that backup,
+the file is simply hardlinked to the previous backup file. No file open or copy operation is involved.
+This is fast, especially because the virus scanner will not have a look at the file, and thus cannot slow down
+the backup process.
+
+#### Disadvantages of fast backup mode
+- If a program will change the content of the file, but does keep the writing time the same,
+LediBackup will not recognize the changed content. Thus it will link to the previous backup file with the old content.  
+Fortunately, programs that change the content without changing the write time are very seldom and probably malicious.
+- Because in most cases the file is not opened, the virus scanner will not have a look to that file.
+
 
 ## Dos and Don'ts
 
