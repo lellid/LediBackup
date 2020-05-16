@@ -77,7 +77,7 @@ namespace LediBackup.Dom.Worker
     {
       while (!IsDisposed)
       {
-        if (_inputQueue.TryTake(out var readerItem, -1))
+        if (_inputQueue.TryTake(out var readerItem, 1000))
         {
           Interlocked.Increment(ref _numberOfWorkingWorkerLoops);
           ItemAvailable?.Invoke(readerItem);

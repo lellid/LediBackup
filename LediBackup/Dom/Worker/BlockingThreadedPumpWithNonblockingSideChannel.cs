@@ -102,7 +102,7 @@ namespace LediBackup.Dom.Worker
           Interlocked.Decrement(ref _numberOfWorkingWorkerLoops);
         }
         {
-          if (BlockingCollection<TItem>.TryTakeFromAny(bothQueues, out var readerItem) >= 0)
+          if (BlockingCollection<TItem>.TryTakeFromAny(bothQueues, out var readerItem, 1000) >= 0)
           {
             Interlocked.Increment(ref _numberOfWorkingWorkerLoops);
             ItemAvailable?.Invoke(readerItem!);
