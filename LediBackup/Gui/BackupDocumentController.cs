@@ -40,6 +40,8 @@ namespace LediBackup.Gui
 
     public BackupDocumentController(BackupDocument doc, IBackupDocumentView view)
     {
+      Current.PropertyChanged += EhCurrent_PropertyChanged;
+
       _doc = doc ?? throw new ArgumentNullException(nameof(doc));
       _view = view ?? throw new ArgumentNullException(nameof(view));
 
@@ -59,6 +61,24 @@ namespace LediBackup.Gui
       CmdFileSaveAs = new RelayCommand(EhFileSaveAs);
 
       _view.DataContext = this;
+    }
+
+    private void EhCurrent_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName == nameof(Current.Project))
+      {
+        _doc = Current.Project;
+        OnPropertyChanged(nameof(BackupBaseDirectory));
+        OnPropertyChanged(nameof(BackupModeIsFast));
+        OnPropertyChanged(nameof(BackupModeIsSecure));
+        OnPropertyChanged(nameof(BackupTodaysDirectoryPreText));
+        OnPropertyChanged(nameof(BackupTodaysDirectoryMiddleText));
+        OnPropertyChanged(nameof(BackupTodaysDirectoryPostText));
+        OnPropertyChanged(nameof(BackupDirectories));
+        OnPropertyChanged(nameof(ErrorMessages));
+        OnPropertyChanged(nameof(NameOfProcessedFile));
+        OnPropertyChanged(nameof(NumberOfProcessedFiles));
+      }
     }
 
     #region Bindings
@@ -460,13 +480,7 @@ namespace LediBackup.Gui
         {
           s.BeginReading(stream);
           var project = (BackupDocument)(s.GetValue("Project", null) ?? throw new InvalidDataException("Deserializing the project gets not a value"));
-          Current.Project.CopyFrom(project);
-          OnPropertyChanged(nameof(BackupBaseDirectory));
-          OnPropertyChanged(nameof(BackupTodaysDirectoryPreText));
-          OnPropertyChanged(nameof(BackupTodaysDirectoryMiddleText));
-          OnPropertyChanged(nameof(BackupTodaysDirectoryPostText));
-          OnPropertyChanged(nameof(BackupModeIsSecure));
-          OnPropertyChanged(nameof(BackupModeIsFast));
+          Current.Project = project;
         }
 
         Current.FileName = fileName;

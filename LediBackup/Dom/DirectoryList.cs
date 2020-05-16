@@ -49,13 +49,6 @@ namespace LediBackup.Dom
 
     #endregion
 
-    public void CopyFrom(DirectoryList other)
-    {
-      if (other is null) throw new ArgumentNullException(nameof(other));
 
-      this.Clear();
-      foreach (var v in other)
-        this.Add((DirectoryEntry)v.Clone());
-    }
   }
 }

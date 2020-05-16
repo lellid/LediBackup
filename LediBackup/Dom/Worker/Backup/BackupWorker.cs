@@ -125,8 +125,15 @@ namespace LediBackup.Dom.Worker.Backup
       _backupCentralNameStorageFolder = System.IO.Path.Combine(backupMainFolder, Current.BackupNameFolderName);
       _todaysBackupFolder = Path.Combine(backupMainFolder, doc.GetBackupTodaysDirectoryName());
 
-      if (Directory.Exists(_todaysBackupFolder))
-        throw new ArgumentException($"The today's backup folder {_todaysBackupFolder} exists already. Overwriting an existing backup is not supported. Please choose another folder for today's backup!");
+      // we allow that today's backup folder already exist in order to make it possible to backup files from different
+      // computers to the same today's backup directory
+      // but what we will not allow is to backup files to already existing subdirectories of the today's backup folder
+      foreach (var dirToBackup in _directoriesToBackup)
+      {
+        var dir = Path.Combine(_todaysBackupFolder, dirToBackup.DestinationDirectory);
+        if (Directory.Exists(dir))
+          throw new ArgumentException($"The destination backup folder {dir} exists already! Overwriting an existing backup folder is not supported. Please choose another folder for today's backup!");
+      }
 
       _sha256Pool = new SHA256Pool();
       _bufferPool = new BufferPool();

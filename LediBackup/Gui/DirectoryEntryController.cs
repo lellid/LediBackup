@@ -67,6 +67,13 @@ namespace LediBackup.Gui
         {
           _sourceDirectory = value;
           OnPropertyChanged(nameof(SourceDirectory));
+
+          if (string.IsNullOrEmpty(DestinationFolder))
+          {
+
+            DestinationFolder = Environment.MachineName + "_" + System.IO.Path.GetFileName(_sourceDirectory);
+          }
+
         }
       }
     }
@@ -111,7 +118,6 @@ namespace LediBackup.Gui
       if (dlg.ShowDialog() == DialogResult.OK)
       {
         SourceDirectory = dlg.SelectedPath;
-        DestinationFolder = System.IO.Path.GetFileName(dlg.SelectedPath);
       }
     }
 

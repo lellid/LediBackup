@@ -19,15 +19,34 @@ namespace LediBackup
     public const string ApplicationName = "LediBackup";
     public const string BackupContentFolderName = "~CCS~";
     public const string BackupNameFolderName = "~CNS~";
+    private static Dom.BackupDocument _project = new Dom.BackupDocument();
 
-    public static Dom.BackupDocument Project { get; } = new Dom.BackupDocument();
+    public static Dom.BackupDocument Project
+    {
+      get => _project;
+      set
+      {
+        if (!(object.ReferenceEquals(_project, value ?? throw new ArgumentNullException(nameof(Project)))))
+        {
+          if (_project is { } _)
+            _project.PropertyChanged -= EhProjectPropertyChanged;
+
+          _project = value;
+
+          if (_project is { } _)
+            _project.PropertyChanged += EhProjectPropertyChanged;
+
+          OnPropertyChanged(nameof(Project));
+        }
+      }
+    }
+
 
     public static Gui.BackupDocumentController? BackupDocumentController { get; set; }
 
     static Current()
     {
       Project = new Dom.BackupDocument();
-      Project.PropertyChanged += EhProjectPropertyChanged;
     }
 
     private static void EhProjectPropertyChanged(object sender, PropertyChangedEventArgs e)

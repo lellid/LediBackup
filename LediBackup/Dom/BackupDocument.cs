@@ -33,7 +33,7 @@ namespace LediBackup.Dom
 
     public BackupDocument()
     {
-      _backupMode = BackupMode.Fast;
+      _backupMode = BackupMode.Secure;
       _backupMainFolder = string.Empty;
       _backupTodaysDirectoryPreText = string.Empty;
       _backupTodaysDirectoryMiddleText = BackupTodaysDirectoryMiddleTextType.YearMonthDay;
@@ -42,20 +42,6 @@ namespace LediBackup.Dom
       _directories = new DirectoryList();
       _directories.CollectionChanged += (s, e) => IsDirty = true;
     }
-
-    public void CopyFrom(BackupDocument other)
-    {
-      if (other is null) throw new ArgumentNullException(nameof(other));
-
-      BackupMode = other.BackupMode;
-      BackupMainFolder = other.BackupMainFolder;
-      BackupTodaysDirectoryPreText = other.BackupTodaysDirectoryPreText;
-      BackupTodaysDirectoryMiddleText = other.BackupTodaysDirectoryMiddleText;
-      BackupTodaysDirectoryPostText = other.BackupTodaysDirectoryPostText;
-      _directories.CopyFrom(other._directories);
-      IsDirty = other.IsDirty;
-    }
-
 
     #region Serialization
 
