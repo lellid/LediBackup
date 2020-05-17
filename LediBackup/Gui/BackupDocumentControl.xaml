@@ -52,6 +52,11 @@
         </Grid.RowDefinitions>
 
         <Menu Grid.Row="0">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
             <MenuItem Header="File">
                 <MenuItem Command="{Binding CmdFileOpen}" Header="Open.." />
                 <MenuItem Command="{Binding CmdFileSave}" Header="Save" />
@@ -60,6 +65,9 @@
             <MenuItem Header="Tools">
                 <MenuItem Command="{Binding CmdReorganizeOldBackup}" Header="Reorganize old backup.." />
                 <MenuItem Command="{Binding CmdPruneCentralContentStorageDirectory}" Header="Prune central content storage directory.." />
+            </MenuItem>
+            <MenuItem Header="Help" HorizontalAlignment="Right" >
+                <MenuItem Command="{Binding CmdShowHelpAbout}" Header="About.." />
             </MenuItem>
         </Menu>
 

@@ -20,6 +20,11 @@ namespace LediBackup.Gui
     bool ApplyVisible { set; }
 
     /// <summary>
+    /// Sets if the Cancel button should be visible.
+    /// </summary>
+    bool CancelVisible { set; }
+
+    /// <summary>
     /// Sets the title
     /// </summary>
     string Title { set; }

@@ -114,6 +114,15 @@ namespace LediBackup.Gui
       }
     }
 
+    public bool CancelVisible
+    {
+      set
+      {
+        _btCancel.Visibility = value ? Visibility.Visible : Visibility.Hidden;
+      }
+    }
+
+
     public event Action<System.ComponentModel.CancelEventArgs>? ButtonOKPressed;
 
     public event Action? ButtonCancelPressed;

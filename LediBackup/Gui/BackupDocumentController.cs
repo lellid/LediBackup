@@ -50,6 +50,7 @@ namespace LediBackup.Gui
       CmdCancelBackup = new RelayCommand(EhCancelBackup);
       CmdReorganizeOldBackup = new RelayCommand(EhReorganizeOldBackup);
       CmdPruneCentralContentStorageDirectory = new RelayCommand(EhPruneCentralContentStorageDirectory);
+      CmdShowHelpAbout = new RelayCommand(EhShowHelpAbout);
       CmdChooseBackupBaseDirectory = new RelayCommand(EhChooseBackupDirectory);
       CmdNewDirectoryEntry = new RelayCommand(EhNewDirectoryEntry);
       CmdEditDirectoryEntry = new RelayCommand(EhEditDirectoryEntry);
@@ -186,6 +187,8 @@ namespace LediBackup.Gui
     public ICommand CmdReorganizeOldBackup { get; }
 
     public ICommand CmdPruneCentralContentStorageDirectory { get; }
+
+    public ICommand CmdShowHelpAbout { get; }
     public ICommand CmdChooseBackupBaseDirectory { get; }
 
     public ICommand CmdNewDirectoryEntry { get; }
@@ -452,6 +455,19 @@ namespace LediBackup.Gui
           SelectedDirectory = null;
         }
       }
+    }
+
+    private void EhShowHelpAbout()
+    {
+      var controller = new HelpAboutController();
+      var control = new HelpAboutControl { DataContext = controller };
+      var dlg = new DialogShellViewWpf(control)
+      {
+        CancelVisible = false,
+        ApplyVisible = false
+      };
+
+      dlg.ShowDialog();
     }
 
     private void EhChooseBackupDirectory()
