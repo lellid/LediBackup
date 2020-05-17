@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,24 +26,29 @@ namespace LediBackup.Gui
   /// <summary>
   /// Interaction logic for HelpAboutControl.xaml
   /// </summary>
-  public partial class HelpAboutControl : UserControl, IHelpAboutView
+  public partial class HelpManualControl : UserControl, IHelpAboutView
   {
-    public HelpAboutControl()
+    public HelpManualControl()
     {
       InitializeComponent();
 
-
+      Loaded += EhLoaded;
     }
 
-    private void EhOpenGitHub(object sender, RequestNavigateEventArgs e)
+    private void EhLoaded(object sender, RoutedEventArgs e)
     {
-      var url = e.Uri.ToString();
-      var psi = new ProcessStartInfo
+      if (Assembly.GetEntryAssembly() is { } ass)
       {
-        FileName = url,
-        UseShellExecute = true
-      };
-      Process.Start(psi);
+        var stream = ass.GetManifestResourceStream("LediBackup.Manual.Manual.rtf");
+
+        if (stream is { } _)
+        {
+          _guiRichTextBox.SelectAll();
+          _guiRichTextBox.Selection.Load(stream, DataFormats.Rtf);
+
+          stream.Close();
+        }
+      }
     }
   }
 }

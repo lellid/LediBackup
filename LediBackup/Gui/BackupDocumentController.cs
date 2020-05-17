@@ -51,6 +51,7 @@ namespace LediBackup.Gui
       CmdReorganizeOldBackup = new RelayCommand(EhReorganizeOldBackup);
       CmdPruneCentralContentStorageDirectory = new RelayCommand(EhPruneCentralContentStorageDirectory);
       CmdShowHelpAbout = new RelayCommand(EhShowHelpAbout);
+      CmdShowHelpManual = new RelayCommand(EhShowHelpManual);
       CmdChooseBackupBaseDirectory = new RelayCommand(EhChooseBackupDirectory);
       CmdNewDirectoryEntry = new RelayCommand(EhNewDirectoryEntry);
       CmdEditDirectoryEntry = new RelayCommand(EhEditDirectoryEntry);
@@ -189,6 +190,8 @@ namespace LediBackup.Gui
     public ICommand CmdPruneCentralContentStorageDirectory { get; }
 
     public ICommand CmdShowHelpAbout { get; }
+
+    public ICommand CmdShowHelpManual { get; }
     public ICommand CmdChooseBackupBaseDirectory { get; }
 
     public ICommand CmdNewDirectoryEntry { get; }
@@ -468,6 +471,19 @@ namespace LediBackup.Gui
       };
 
       dlg.ShowDialog();
+    }
+
+    private void EhShowHelpManual()
+    {
+
+      var control = new HelpManualControl();
+      var dlg = new Window
+      {
+        Content = control
+      };
+
+
+      dlg.Show();
     }
 
     private void EhChooseBackupDirectory()

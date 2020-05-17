@@ -67,6 +67,7 @@
                 <MenuItem Command="{Binding CmdPruneCentralContentStorageDirectory}" Header="Prune central content storage directory.." />
             </MenuItem>
             <MenuItem Header="Help" HorizontalAlignment="Right" >
+                <MenuItem Command="{Binding CmdShowHelpManual}" Header="Read manual.." />
                 <MenuItem Command="{Binding CmdShowHelpAbout}" Header="About.." />
             </MenuItem>
         </Menu>
