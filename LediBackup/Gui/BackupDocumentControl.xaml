@@ -7,10 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <local:VisibilityHiddenForFalseConverter x:Key="VisibilityHiddenForFalseConverter" />
+        <local:VisibilityHiddenForFalseConverter x:Key="VisibilityHiddenForFalseConverter"   />
         <local:VisibilityHiddenForTrueConverter x:Key="VisibilityHiddenForTrueConverter" />
     </UserControl.Resources>
     <Grid>
+        <Grid.Resources>
+            <ResourceDictionary Source="pack://application:,,,/LediBackup;component/Themes/CommonStyles.xaml" />
+        </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="16" />
@@ -147,16 +150,25 @@
                 Content="Edit.." />
             <Button
                 Margin="4"
-                Command="{Binding CmdMoveDirectoryEntryUp}"
-                Content="^" />
+                Command="{Binding CmdMoveDirectoryEntryUp}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource UpArrowPathStyle}" />
+                </Viewbox>
+            </Button>
+            <Button
+            Margin="4"
+                Command="{Binding CmdMoveDirectoryEntryDown}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource DownArrowPathStyle}" />
+                </Viewbox>
+            </Button>
             <Button
                 Margin="4"
-                Command="{Binding CmdMoveDirectoryEntryDown}"
-                Content="v" />
-            <Button
-                Margin="4"
-                Command="{Binding CmdDeleteDirectoryEntry}"
-                Content="X" />
+                Command="{Binding CmdDeleteDirectoryEntry}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource RemoveCrossPathStyle}" />
+                </Viewbox>
+            </Button>
         </StackPanel>
 
         <GroupBox Grid.Row="12" Header="Backup mode:">

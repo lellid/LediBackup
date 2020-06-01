@@ -9,6 +9,9 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
+        <Grid.Resources>
+            <ResourceDictionary Source="pack://application:,,,/LediBackup;component/Themes/CommonStyles.xaml" />
+        </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="16" />
@@ -48,16 +51,25 @@
             Orientation="Vertical">
             <Button
                 Margin="4"
-                Command="{Binding CmdMoveUp}"
-                Content="^" />
+                Command="{Binding CmdMoveUp}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource UpArrowPathStyle}" />
+                </Viewbox>
+            </Button>
             <Button
                 Margin="4"
-                Command="{Binding CmdMoveDown}"
-                Content="v" />
+                Command="{Binding CmdMoveDown}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource DownArrowPathStyle}" />
+                </Viewbox>
+            </Button>
             <Button
                 Margin="4"
-                Command="{Binding CmdDelete}"
-                Content="X" />
+                Command="{Binding CmdDelete}">
+                <Viewbox Style="{StaticResource ArrowViewBoxStyle}">
+                    <Path Style="{StaticResource RemoveCrossPathStyle}" />
+                </Viewbox>
+            </Button>
         </StackPanel>
 
     </Grid>

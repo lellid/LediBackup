@@ -7,6 +7,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 //
 // General Information about an assembly is controlled through the following
@@ -21,6 +22,9 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCopyright("(C) Dr. Dirk Lellinger 2020-$YEAR$")]
 [assembly: AssemblyTrademark("(C) Dr. Dirk Lellinger 2020-$YEAR$")]
 [assembly: AssemblyCulture("")]
+
+// The following line is neccessary if the assembly contains themes for custom wpf controls
+[assembly: ThemeInfo(ResourceDictionaryLocation.SourceAssembly, ResourceDictionaryLocation.SourceAssembly)]
 
 //
 // Version information for an assembly consists of the following four values:

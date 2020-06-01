@@ -51,6 +51,7 @@ namespace LediBackup.Gui
     {
       _doc.SourceDirectory = _sourceDirectory;
       _doc.DestinationDirectory = _destinationFolder;
+      _doc.MaxDepthOfSymbolicLinksToFollow = _maxDepthOfSymbolicLinksToFollow;
       // doc FilterList should be already up-to-date
       return _doc;
 

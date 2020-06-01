@@ -3,8 +3,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:LediBackup.Gui">
 
+    <!-- Make sure that the following is included in AssemblyInfo.cs; otherwise, Generic.xaml would have no effect!
+    // The following line is neccessary if the assembly contains themes for custom wpf controls
+    [assembly: ThemeInfo(ResourceDictionaryLocation.SourceAssembly, ResourceDictionaryLocation.SourceAssembly)]
+    -->
+
+
     <!--  *********************** Styles for NumericUpDownBase **************************************  -->
-    <Style xmlns:axogc="clr-namespace:LediBackup.Gui" TargetType="{x:Type axogc:NumericUpDownBase}">
+    <Style TargetType="{x:Type axogc:NumericUpDownBase}" xmlns:axogc="clr-namespace:LediBackup.Gui" >
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="Template">
