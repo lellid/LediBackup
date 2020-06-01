@@ -178,12 +178,13 @@ namespace LediBackup.Dom.Worker.Backup
             {
               var subDestinationDirectory = destinationDirectory.CreateSubdirectory(subSourceDirectory.Name);
 
+              int symLinkLevelLocally = symLinkLevel;
               if ((subSourceDirectory.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
-                --symLinkLevel;
+                --symLinkLevelLocally;
 
-              if (symLinkLevel >= 0)
+              if (symLinkLevelLocally >= 0)
               {
-                BackupSingleFolder(subSourceDirectory, subDestinationDirectory, relativeSubFolderName, filter, symLinkLevel, destinationNameBuffer);
+                BackupSingleFolder(subSourceDirectory, subDestinationDirectory, relativeSubFolderName, filter, symLinkLevelLocally, destinationNameBuffer);
               }
               else
               {
