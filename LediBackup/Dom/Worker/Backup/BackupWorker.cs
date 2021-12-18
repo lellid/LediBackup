@@ -73,6 +73,7 @@ namespace LediBackup.Dom.Worker.Backup
     /// </value>
     public CancellationTokenSource CancellationTokenSource => _cancellationTokenSource;
 
+    SupervisedFileOperations FileOperations { get; } = new SupervisedFileOperations(6, TimeSpan.FromSeconds(10));
 
     #region Diagnostics
 

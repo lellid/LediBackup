@@ -7,9 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
 
 namespace LediBackup.Dom.Worker.Backup
 {
@@ -73,6 +73,8 @@ namespace LediBackup.Dom.Worker.Backup
       /// <summary>True if the name of the central content file is known (by calculating the hash of the content).</summary>
       public bool IsContentFileNameKnown => !string.IsNullOrEmpty(_centralContentFileName);
 
+      public SupervisedFileOperations FileOps => _parent.FileOperations;
+
       public WorkerItem(BackupWorker parent, FileInfo sourceFile, string destinationFileName, byte[] nameBufferPreText)
       {
         _parent = parent;
@@ -125,7 +127,7 @@ namespace LediBackup.Dom.Worker.Backup
       /// If the central name file does not exist, or linking fails due to an exceeded link limit, the return value is false.
       /// </summary>
       /// <returns>True if linking of the destination file to the existing central name file succeeded;, otherwise, false.</returns>
-      /// <exception cref="System.IO.IOException">Error creating hard link from {_centralNameFileName} to {_destinationFileName}, ErrorCode: {hlr}</exception>
+      /// <exception cref="IOException">Error creating hard link from {_centralNameFileName} to {_destinationFileName}, ErrorCode: {hlr}</exception>
       public bool TryToLinkToExistingNameFile()
       {
         var fileInfoCentralNameFileName = new FileInfo(_centralNameFileName);
@@ -143,7 +145,7 @@ namespace LediBackup.Dom.Worker.Backup
           {
             if (hlr != FileUtilities.ERROR_TOO_MANY_LINKS) // ignore TooManyLinks error, instead let the content file be created anew
             {
-              throw new System.IO.IOException($"Error creating hard link from {_centralNameFileName} to {_destinationFileName}, ErrorCode: {hlr}");
+              throw new IOException($"Error creating hard link from {_centralNameFileName} to {_destinationFileName}, ErrorCode: {hlr}");
             }
           }
         }
@@ -161,7 +163,8 @@ namespace LediBackup.Dom.Worker.Backup
         {
           if (object.ReferenceEquals(_stream, Stream.Null))
           {
-            _stream = new FileStream(_sourceFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            
+            _stream = FileOps.Execute(() => new FileStream(_sourceFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read));
             _streamLength = _stream.Length;
           }
 
@@ -252,25 +255,29 @@ namespace LediBackup.Dom.Worker.Backup
               bool isRepeatRequired = false;
               do
               {
-                if (!File.Exists(_centralContentFileName))
+                if (!FileOps.FileExists(_centralContentFileName))
                 {
-                  if (!Directory.Exists(_centralContentFolder))
-                    Directory.CreateDirectory(_centralContentFolder);
+                  if (!FileOps.DirectoryExists(_centralContentFolder))
+                    FileOps.CreateDirectory(_centralContentFolder);
 
                   if (_bytesInBuffer == (_streamLength + FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes) && _buffer is { } buffer)
                   {
-                    using (var destStream = new FileStream(_centralContentFileName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+                    FileOps.Execute(() =>
                     {
-                      destStream.Write(_buffer, FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes, _bytesInBuffer - FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes);
+                      using (var destStream = new FileStream(_centralContentFileName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+                      {
+                        destStream.Write(_buffer, FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes, _bytesInBuffer - FileUtilities.BufferSpaceForLengthWriteTimeAndFileAttributes);
+                      }
                     }
+                    );
                     // Set attributes on the destination file, such as last write time, and attributes.
-                    File.SetLastWriteTimeUtc(_centralContentFileName, _sourceFile.LastWriteTimeUtc);
-                    File.SetAttributes(_centralContentFileName, _sourceFile.Attributes & FileUtilities.FileAttributeMask);
+                    FileOps.FileSetLastWriteTimeUtc(_centralContentFileName, _sourceFile.LastWriteTimeUtc);
+                    FileOps.FileSetAttributes(_centralContentFileName, _sourceFile.Attributes & FileUtilities.FileAttributeMask);
                   }
                   else
                   {
                     // we do not use the destination stream here
-                    File.Copy(_sourceFile.FullName, _centralContentFileName);
+                    FileOps.FileCopy(_sourceFile.FullName, _centralContentFileName);
                     // note: when copying, attributes and LastWriteTime is already set.
                   }
                 }
@@ -284,30 +291,30 @@ namespace LediBackup.Dom.Worker.Backup
                     if (hlr == FileUtilities.ERROR_TOO_MANY_LINKS) // is hard link limit exceeded?
                     {
                       // in order to circumvent the hard link limit, we delete the file from the central storage, and create it anew
-                      File.Delete(_centralContentFileName);
+                      FileOps.FileDelete(_centralContentFileName);
                       isRepeatRequired = true;
                       continue;
                     }
                     else
                     {
-                      throw new System.IO.IOException($"Error creating hard link {_destinationFileName}, ErrorCode: {hlr}");
+                      throw new IOException($"Error creating hard link {_destinationFileName}, ErrorCode: {hlr}");
                     }
                   }
                 }
 
                 // Handle the name file (except when in BackupMode.SecureNoNameFile)
-                if (backupMode == BackupMode.Fast && !File.Exists(_centralNameFileName))
+                if (backupMode == BackupMode.Fast && !FileOps.FileExists(_centralNameFileName))
                 {
                   var folder = Path.GetDirectoryName(_centralNameFileName);
-                  if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+                  if (!FileOps.DirectoryExists(folder))
+                    FileOps.CreateDirectory(folder);
                   var hlr = FileUtilities.CreateHardLink(_centralContentFileName, _centralNameFileName);
                   if (hlr != 0)
                   {
                     if (hlr == FileUtilities.ERROR_TOO_MANY_LINKS)
-                      File.Delete(_centralNameFileName);
+                      FileOps.FileDelete(_centralNameFileName);
                     else
-                      throw new System.IO.IOException($"Error creating hard link {_destinationFileName}, ErrorCode: {hlr}");
+                      throw new IOException($"Error creating hard link {_destinationFileName}, ErrorCode: {hlr}");
                   }
                 }
               } while (isRepeatRequired);
