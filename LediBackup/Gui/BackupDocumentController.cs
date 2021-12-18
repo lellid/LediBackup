@@ -548,7 +548,7 @@ namespace LediBackup.Gui
     {
       var s = new LediBackup.Serialization.Xml.XmlStreamSerializationInfo();
 
-      using (var stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+      using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
       {
         s.BeginWriting(stream);
         s.AddValue("Project", Current.Project);
