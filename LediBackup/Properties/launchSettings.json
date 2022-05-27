@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LediBackup": {
+      "commandName": "Project",
+      "commandLineArgs": "\"H:\\LediBackup\\AlleBackups.ledibackup\""
+    }
+  }
+}
