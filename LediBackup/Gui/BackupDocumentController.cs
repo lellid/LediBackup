@@ -63,6 +63,13 @@ namespace LediBackup.Gui
       CmdFileSaveAs = new RelayCommand(EhFileSaveAs);
 
       _view.DataContext = this;
+
+      var args = Environment.GetCommandLineArgs();
+
+      if(args.Length == 2)
+      {
+        OpenProjectFile(args[1]);
+      }
     }
 
     private void EhCurrent_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -506,17 +513,22 @@ namespace LediBackup.Gui
       if (true == dlg.ShowDialog())
       {
         var fileName = dlg.FileName;
-        var s = new LediBackup.Serialization.Xml.XmlStreamDeserializationInfo();
-
-        using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-        {
-          s.BeginReading(stream);
-          var project = (BackupDocument)(s.GetValue("Project", null) ?? throw new InvalidDataException("Deserializing the project gets not a value"));
-          Current.Project = project;
-        }
-
-        Current.FileName = fileName;
+        OpenProjectFile(fileName);
       }
+    }
+
+    private static void OpenProjectFile(string fileName)
+    {
+      var s = new LediBackup.Serialization.Xml.XmlStreamDeserializationInfo();
+
+      using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+      {
+        s.BeginReading(stream);
+        var project = (BackupDocument)(s.GetValue("Project", null) ?? throw new InvalidDataException("Deserializing the project gets not a value"));
+        Current.Project = project;
+      }
+
+      Current.FileName = fileName;
     }
 
     private void EhFileSave()
